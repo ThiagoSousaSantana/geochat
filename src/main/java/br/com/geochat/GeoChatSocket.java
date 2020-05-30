@@ -12,17 +12,23 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
+
 
 @ServerEndpoint("/chat/{username}")         
 @ApplicationScoped
 public class GeoChatSocket {
     
+    Logger log = LoggerFactory.getLogger(GeoChatSocket.class);
     Map<String, Session> sessions = new ConcurrentHashMap<>();
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username) {
         sessions.put(username, session);
-        broadcast("User " + username + " joined");
+        var joinMessage = "User: " + username + " joined";
+        log.info(joinMessage);
+        broadcast(joinMessage);
     }
 
     @OnClose
@@ -43,12 +49,14 @@ public class GeoChatSocket {
     }
 
     private void broadcast(String message) {
-        sessions.values().forEach(s -> {
-            s.getAsyncRemote().sendObject(message, result ->  {
-                if (result.getException() != null) {
-                    System.out.println("Unable to send message: " + result.getException());
-                }
-            });
+        sessions.values().forEach(session -> sendMessage(session, message));
+    }
+
+    private void sendMessage(Session session, String message) {
+        session.getAsyncRemote().sendObject(message, result -> {
+            if (result.getException() != null) {
+                log.error("Unable to send message", result.getException());
+            }
         });
     }
 }

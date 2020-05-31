@@ -16,7 +16,10 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 
-@ServerEndpoint("/chat/{username}")         
+@ServerEndpoint(
+    value = "/chat/{username}",
+    encoders = {SetEncoder.class},
+    decoders = {})         
 @ApplicationScoped
 public class GeoChatSocket {
     
@@ -25,6 +28,7 @@ public class GeoChatSocket {
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username) {
+        updateOnlineUsers();
         sessions.put(username, session);
         var joinMessage = "User: " + username + " joined";
         log.info(joinMessage);
@@ -34,18 +38,32 @@ public class GeoChatSocket {
     @OnClose
     public void onClose(Session session, @PathParam("username") String username) {
         sessions.remove(username);
-        broadcast("User " + username + " left");
+        updateOnlineUsers();
+        var closeMessage = "User " + username + " left";
+        log.info(closeMessage);
+        broadcast(closeMessage);
     }
 
     @OnError
     public void onError(Session session, @PathParam("username") String username, Throwable throwable) {
         sessions.remove(username);
-        broadcast("User " + username + " left on error: " + throwable);
+        updateOnlineUsers();
+        log.error("User " + username + " left on error: " + throwable, throwable);
     }
 
     @OnMessage
     public void onMessage(String message, @PathParam("username") String username) {
         broadcast(">> " + username + ": " + message);
+    }
+
+    private void updateOnlineUsers() {
+        sessions.values().forEach(session -> {
+            session.getAsyncRemote().sendObject(sessions.keySet(), result -> {
+                if (result.getException() != null) {
+                    log.error("Unable to send online users", result.getException());
+                }
+            });
+        });
     }
 
     private void broadcast(String message) {

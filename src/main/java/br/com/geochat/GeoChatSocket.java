@@ -12,10 +12,13 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
+import br.com.geochat.internal.AbstractMessageEncoder;
 import br.com.geochat.internal.MessageDecoder;
 import br.com.geochat.internal.MessageEncoder;
 import br.com.geochat.internal.SetEncoder;
+import br.com.geochat.models.AbstractMessage;
 import br.com.geochat.models.Message;
+import br.com.geochat.models.MessageType;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
@@ -24,7 +27,8 @@ import io.vertx.core.logging.LoggerFactory;
     value = "/chat/{username}",
     encoders = {
         SetEncoder.class,
-        MessageEncoder.class
+        MessageEncoder.class,
+        AbstractMessageEncoder.class
     },
     decoders = {MessageDecoder.class})         
 @ApplicationScoped
@@ -37,16 +41,7 @@ public class GeoChatSocket {
     public void onOpen(Session session, @PathParam("username") String username) {
         sessions.put(username, session);
         broadcastOnlineUsers();
-
-        var joinMessage = "User: " + username + " joined";
-        log.info(joinMessage);
-
-        broadcast(new Message(
-            "System",
-            "All",
-            joinMessage,
-            false
-        ));
+        log.info("User: " + username + " joined");
     }
 
     @OnClose
@@ -54,15 +49,7 @@ public class GeoChatSocket {
         sessions.remove(username);
         broadcastOnlineUsers();
         
-        var closeMessage = "User " + username + " left";
-        log.info(closeMessage);
-        
-        broadcast(new Message(
-            "Systen",
-            "All",
-            closeMessage,
-            false
-        ));
+        log.info("User " + username + " left");
     }
 
     @OnError
@@ -92,7 +79,7 @@ public class GeoChatSocket {
     }
 
     private void sendOnlineUsers(Session session) {
-        session.getAsyncRemote().sendObject(sessions.keySet(), result -> {
+        session.getAsyncRemote().sendObject(new AbstractMessage(MessageType.USER_LIST, sessions.keySet()), result -> {
             if (result.getException() != null) {
                 log.error("Unable to send online users", result.getException());
             }
@@ -100,7 +87,7 @@ public class GeoChatSocket {
     }
 
     private void sendMessage(Session session, Message message) {
-        session.getAsyncRemote().sendObject(message, result -> {
+        session.getAsyncRemote().sendObject(new AbstractMessage(MessageType.MESSAGE, message), result -> {
             if (result.getException() != null) {
                 log.error("Unable to send message", result.getException());
             }

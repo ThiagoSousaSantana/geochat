@@ -1,4 +1,4 @@
-package br.com.geochat;
+package br.com.geochat.internal;
 
 import java.util.Set;
 
@@ -6,9 +6,11 @@ import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
 
-import io.vertx.core.json.Json;
+import com.google.gson.Gson;
 
-public class SetEncoder implements Encoder.Text<Set>{
+public class SetEncoder implements Encoder.Text<Set<String>>{
+
+    private static Gson gson = new Gson();
 
 	@Override
 	public void init(EndpointConfig config) {
@@ -23,8 +25,8 @@ public class SetEncoder implements Encoder.Text<Set>{
 	}
 
 	@Override
-	public String encode(Set object) throws EncodeException {
-		return Json.encode(object);
+	public String encode(Set<String> object) throws EncodeException {
+		return gson.toJson(object);
 	}
     
 }

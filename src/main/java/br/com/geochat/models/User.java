@@ -1,9 +1,12 @@
 package br.com.geochat.models;
 
+import java.io.Serializable;
+
 import javax.websocket.Session;
 
-public class User {
-    private String username;
+public class User implements Serializable {
+	private static final long serialVersionUID = 1L;
+	private String username;
     private String avatar;
     private Session session;
     
@@ -63,11 +66,11 @@ public class User {
 		this.username = username;
 	}
 
-	public User(String userString, Session session) {
-        var userInfo = userString.split(";");
-        this.username = userInfo[0];
-		this.avatar = userInfo[1];
+	public User(String username, String avatar, Session session) {
+        this.username = username;
+		this.avatar = avatar;
 		this.session = session;
 	}
+
         
 }

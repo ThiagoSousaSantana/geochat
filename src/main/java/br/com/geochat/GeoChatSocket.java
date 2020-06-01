@@ -1,10 +1,6 @@
 package br.com.geochat;
 
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.websocket.OnClose;
@@ -16,9 +12,9 @@ import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
 import br.com.geochat.internal.AbstractMessageEncoder;
+import br.com.geochat.internal.ListEncoder;
 import br.com.geochat.internal.MessageDecoder;
 import br.com.geochat.internal.MessageEncoder;
-import br.com.geochat.internal.SetEncoder;
 import br.com.geochat.internal.UserEncoder;
 import br.com.geochat.models.AbstractMessage;
 import br.com.geochat.models.Message;
@@ -29,9 +25,9 @@ import io.vertx.core.logging.LoggerFactory;
 
 
 @ServerEndpoint(
-    value = "/chat/{userString}",
+    value = "/chat/{username}/{avatar}",
     encoders = {
-        SetEncoder.class,
+        ListEncoder.class,
         MessageEncoder.class,
         AbstractMessageEncoder.class,
         UserEncoder.class
@@ -41,36 +37,36 @@ import io.vertx.core.logging.LoggerFactory;
 public class GeoChatSocket {
     
     Logger log = LoggerFactory.getLogger(GeoChatSocket.class);
-    List<User> sessions = new LinkedList<>();
+    LinkedList<User> sessions = new LinkedList<>();
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("userString") String userString) {
-        sessions.add(new User(userString, session));
+    public void onOpen(Session session, @PathParam("username") String username, @PathParam("avatar") String avatar) {
+        sessions.add(new User(username, avatar, session));
         broadcastOnlineUsers();
-        log.info("User: " + userString + " joined");
+        log.info("User: " + username + " joined");
     }
 
     @OnClose
-    public void onClose(Session session, @PathParam("userString") String userString) {
-        sessions.remove(new User(userString, session));
+    public void onClose(Session session, @PathParam("username") String username) {
+        sessions.remove(new User(username));
         broadcastOnlineUsers();
         
-        log.info("User " + userString + " left");
+        log.info("User " + username + " left");
     }
 
     @OnError
-    public void onError(Session session, @PathParam("userString") String userString, Throwable throwable) {
-        sessions.remove(new User(userString, session));
+    public void onError(Session session, @PathParam("username") String username, Throwable throwable) {
+        sessions.remove(new User(username));
         broadcastOnlineUsers();
-        log.error("User " + userString + " left on error: " + throwable, throwable);
+        log.error("User " + username + " left on error: " + throwable, throwable);
     }
 
     @OnMessage
-    public void onMessage(Message message, @PathParam("userString") String userString) {
+    public void onMessage(Message message, @PathParam("username") String username) {
         if (message.isPrivateMessage()) {
             sendMessage(
                 sessions.get(
-                    sessions.indexOf(new User(userString))).getSession(),
+                    sessions.indexOf(new User(username))).getSession(),
                      message);
         } else {
             broadcast(message);

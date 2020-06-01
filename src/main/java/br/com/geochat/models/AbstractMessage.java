@@ -1,8 +1,8 @@
 package br.com.geochat.models;
 
 public class AbstractMessage {
-    private MessageType messageType;
-    private Object content;
+    private transient MessageType messageType;
+    private transient Object content;
 
 	public Object getContent() {
 		return content;

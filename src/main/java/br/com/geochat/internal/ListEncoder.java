@@ -1,14 +1,15 @@
 package br.com.geochat.internal;
 
-import java.util.Set;
-
+import java.util.LinkedList;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
 
 import com.google.gson.Gson;
 
-public class SetEncoder implements Encoder.Text<Set<String>>{
+import br.com.geochat.models.User;
+
+public class ListEncoder implements Encoder.Text<LinkedList<User>>{
 
     private static Gson gson = new Gson();
 
@@ -25,7 +26,7 @@ public class SetEncoder implements Encoder.Text<Set<String>>{
 	}
 
 	@Override
-	public String encode(Set<String> object) throws EncodeException {
+	public String encode(LinkedList<User> object) throws EncodeException {
 		return gson.toJson(object);
 	}
     

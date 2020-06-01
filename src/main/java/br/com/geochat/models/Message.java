@@ -1,21 +1,22 @@
 package br.com.geochat.models;
 
 public class Message {
-    private String from;
-    private String to;
+    private User from;
+    private User to;
 	private String content;
 	private boolean privateMessage;
 	
-	
-	
-	public String getFrom() {
+	public User getFrom() {
 		return from;
 	}
-	public boolean isPrivateMessage() {
-		return privateMessage;
+	public void setFrom(User from) {
+		this.from = from;
 	}
-	public void setPrivateMessage(boolean privateMessage) {
-		this.privateMessage = privateMessage;
+	public User getTo() {
+		return to;
+	}
+	public void setTo(User to) {
+		this.to = to;
 	}
 	public String getContent() {
 		return content;
@@ -23,17 +24,14 @@ public class Message {
 	public void setContent(String content) {
 		this.content = content;
 	}
-	public String getTo() {
-		return to;
+	public boolean isPrivateMessage() {
+		return privateMessage;
 	}
-	public void setTo(String to) {
-		this.to = to;
-	}
-	public void setFrom(String from) {
-		this.from = from;
+	public void setPrivateMessage(boolean privateMessage) {
+		this.privateMessage = privateMessage;
 	}
 
-	public Message(String from, String to, String content, boolean privateMessage) {
+	public Message(User from, User to, String content, boolean privateMessage) {
 		this.from = from;
 		this.to = to;
 		this.content = content;
@@ -41,7 +39,6 @@ public class Message {
 	}
 
 	public Message() {
-		
 	}
-    
+	   
 }

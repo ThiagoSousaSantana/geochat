@@ -8,7 +8,7 @@ public class User implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private String username;
     private String avatar;
-    private Session session;
+    private transient Session session;
     
 	public String getUsername() {
 		return username;
